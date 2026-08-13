@@ -1,0 +1,87 @@
+name: "CI Base"
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js version"
+        required: false
+        default: "24"
+        type: string
+      lint-command:
+        description: "Lint command"
+        required: false
+        default: ""
+        type: string
+      type-check-command:
+        description: "Type check command"
+        required: false
+        default: ""
+        type: string
+      test-command:
+        description: "Test command"
+        required: false
+        default: ""
+        type: string
+      test-coverage-command:
+        description: "Test coverage command"
+        required: false
+        default: ""
+        type: string
+      enable-caching:
+        description: "Enable dependency caching"
+        required: false
+        default: true
+        type: boolean
+      fail-fast:
+        description: "Fail fast on errors"
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Run Lint
+        if: inputs.lint-command != ''
+        run: ${{ inputs.lint-command }}
+
+      - name: Run Type Check
+        if: inputs.type-check-command != ''
+        run: ${{ inputs.type-check-command }}
+
+      - name: Run Tests
+        if: inputs.test-command != ''
+        run: ${{ inputs.test-command }}
+
+      - name: Run Tests with Coverage
+        if: inputs.test-coverage-command != ''
+        run: ${{ inputs.test-coverage-command }}
+
+      - name: Upload Coverage Report
+        if: inputs.test-coverage-command != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7

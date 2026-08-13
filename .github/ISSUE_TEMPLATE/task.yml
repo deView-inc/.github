@@ -1,0 +1,59 @@
+name: 📋 Задача / Техническая работа
+description: Создать задачу для команды разработки
+title: "[Task]: "
+labels: ["task", "backlog"]
+type: task
+
+body:
+    - type: markdown
+      attributes:
+          value: |
+              ## 📋 Техническая задача
+
+              Используйте этот шаблон для планирования работы
+
+    - type: textarea
+      id: description
+      attributes:
+          label: 📝 Описание задачи
+          description: Что нужно сделать?
+          placeholder: |
+              Необходимо реализовать...
+              Добавить функциональность...
+              Обновить зависимости...
+      validations:
+          required: true
+
+    - type: textarea
+      id: checklist
+      attributes:
+          label: ✅ Чеклист выполнения
+          description: Разбейте задачу на подзадачи
+          value: |
+              - [ ] Шаг 1
+              - [ ] Шаг 2
+              - [ ] Шаг 3
+
+    - type: textarea
+      id: acceptance
+      attributes:
+          label: 🎯 Критерии приемки
+          description: Как понять, что задача выполнена?
+          placeholder: |
+              - Работает X
+              - Тесты проходят
+              - Документация обновлена
+
+    - type: textarea
+      id: dependencies
+      attributes:
+          label: 🔗 Зависимости
+          description: От чего зависит эта задача?
+          placeholder: |
+              - #123 (задача)
+              - Ждем релиза библиотеки
+
+    - type: textarea
+      id: additional
+      attributes:
+          label: 📎 Дополнительная информация

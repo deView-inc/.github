@@ -1,0 +1,104 @@
+name: "Close Stale Issues and PRs"
+
+on:
+    workflow_call:
+        inputs:
+            days-before-stale:
+                description: 'Days before marking as stale'
+                required: false
+                default: 30
+                type: number
+            days-before-close:
+                description: 'Days before closing after stale'
+                required: false
+                default: 5
+                type: number
+            exempt-issue-labels:
+                description: 'Labels that exempt issues from being marked stale'
+                required: false
+                default: 'bug,priority:high,pinned,security'
+                type: string
+            exempt-pr-labels:
+                description: 'Labels that exempt PRs from being marked stale'
+                required: false
+                default: 'dependencies,security,WIP,draft'
+                type: string
+            operations-per-run:
+                description: 'Max operations per run'
+                required: false
+                default: 50
+                type: number
+            enable-statistics:
+                description: 'Enable statistics output'
+                required: false
+                default: false
+                type: boolean
+        secrets:
+            github-token:
+                description: 'GitHub token'
+                required: false
+
+jobs:
+    stale:
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            pull-requests: write
+        steps:
+            - uses: actions/stale@v9
+              with:
+                  repo-token: ${{ secrets.github-token || secrets.GITHUB_TOKEN }}
+
+                  # Сообщения
+                  stale-issue-message: |
+                      ⏰ Эта задача давно не обновлялась (${{ inputs.days-before-stale }}+ дней).
+
+                      Она будет автоматически закрыта через **${{ inputs.days-before-close }} дней**, если не появится новой активности.
+
+                      Если задача всё еще актуальна, просто оставьте комментарий или обновите её. 🤖
+
+                  stale-pr-message: |
+                      ⏰ Этот PR замер (${{ inputs.days-before-stale }}+ дней без активности).
+
+                      Мы закроем его через **${{ inputs.days-before-close }} дней**, чтобы не копить очередь.
+
+                      Вы всегда можете переоткрыть его позже, когда будете готовы продолжить работу. 🤖
+
+                  close-issue-message: |
+                      ✅ Эта задача закрыта из-за отсутствия активности.
+
+                      Если проблема всё еще актуальна, пожалуйста, создайте новый issue со ссылкой на этот.
+
+                  close-pr-message: |
+                      ✅ Этот PR закрыт из-за отсутствия активности.
+
+                      Если вы хотите продолжить работу, просто откройте его заново.
+
+                  # Сроки
+                  days-before-stale: ${{ inputs.days-before-stale }}
+                  days-before-close: ${{ inputs.days-before-close }}
+                  days-before-pr-stale: ${{ inputs.days-before-stale }}
+                  days-before-pr-close: ${{ inputs.days-before-close }}
+
+                  # Исключения
+                  exempt-issue-labels: ${{ inputs.exempt-issue-labels }}
+                  exempt-pr-labels: ${{ inputs.exempt-pr-labels }}
+                  exempt-all-milestones: true
+
+                  # Метки
+                  stale-issue-label: "stale"
+                  stale-pr-label: "stale"
+
+                  # Прочее
+                  operations-per-run: ${{ inputs.operations-per-run }}
+                  ascending: true
+                  remove-stale-when-updated: true
+                  delete-branch: false
+
+            - name: Log statistics
+              if: ${{ inputs.enable-statistics == 'true' }}
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      console.log('✅ Stale workflow completed');
+                      console.log('📊 Statistics available in GitHub UI');

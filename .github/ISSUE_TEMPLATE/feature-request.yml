@@ -1,0 +1,90 @@
+name: ✨ Запрос на новую функциональность
+description: Предложите новую идею или улучшение
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+type: feature
+
+body:
+    - type: markdown
+      attributes:
+          value: |
+              ## ✨ Запрос на новую функциональность
+
+              Спасибо, что делитесь идеями! Расскажите, что вы хотите улучшить.
+
+    - type: checkboxes
+      id: checklist
+      attributes:
+          label: ✅ Перед созданием
+          options:
+              - label: Я проверил, что подобное предложение уже не обсуждалось
+                required: true
+              - label: Я понимаю, что запрос может быть отклонен командой
+                required: true
+
+    - type: textarea
+      id: problem
+      attributes:
+          label: 🎯 Какая проблема решается?
+          description: Опишите проблему, которую вы хотите решить
+          placeholder: |
+              Мне нужно делать X, но сейчас для этого нужно...
+              Это неудобно, потому что...
+      validations:
+          required: true
+
+    - type: textarea
+      id: solution
+      attributes:
+          label: 💡 Предлагаемое решение
+          description: Как вы видите решение проблемы?
+          placeholder: |
+              Было бы круто, если бы можно было...
+              Например, добавить кнопку...
+      validations:
+          required: true
+
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: 🔄 Альтернативные решения
+          description: Какие еще варианты вы рассматривали?
+
+    - type: textarea
+      id: impact
+      attributes:
+          label: 📈 Какая польза?
+          description: Как это улучшит продукт/рабочий процесс?
+          placeholder: |
+              - Сократит время на...
+              - Упростит процесс...
+              - Поможет новым пользователям...
+
+    - type: dropdown
+      id: priority
+      attributes:
+          label: 🔥 Приоритет для вас
+          description: Насколько важна эта фича для вас?
+          options:
+              - 🚀 Критично (без этого не могу работать)
+              - 🔥 Очень важно
+              - 📈 Полезно, но не срочно
+              - 🤔 Было бы круто иметь
+
+    - type: textarea
+      id: examples
+      attributes:
+          label: 📊 Примеры из других продуктов
+          description: Есть ли похожая функциональность в других сервисах?
+
+    - type: textarea
+      id: additional
+      attributes:
+          label: 📎 Дополнительная информация
+          description: Любая другая информация, которая поможет
+
+    - type: markdown
+      attributes:
+          value: |
+              ---
+              💡 Чем подробнее вы опишете фичу, тем выше шанс, что она будет реализована!

@@ -1,0 +1,124 @@
+name: "CodeQL Security Analysis"
+
+on:
+    workflow_call:
+        inputs:
+            languages:
+                description: "Languages to analyze (comma-separated)"
+                required: false
+                default: "javascript-typescript"
+                type: string
+            build-mode:
+                description: "Build mode (autobuild/manual/none)"
+                required: false
+                default: "none"
+                type: string
+            node-version:
+                description: "Node.js version for setup"
+                required: false
+                default: "24"
+                type: string
+            package-manager:
+                description: "Package manager (pnpm/npm/yarn)"
+                required: false
+                default: "pnpm"
+                type: string
+            config-path:
+                description: "Path to custom CodeQL config"
+                required: false
+                default: ""
+                type: string
+            fail-on-critical:
+                description: "Fail workflow if critical vulnerabilities found"
+                required: false
+                default: false
+                type: boolean
+        secrets:
+            github-token:
+                description: "GitHub token"
+                required: false
+
+permissions:
+    contents: read
+    security-events: write
+
+jobs:
+    analyze:
+        name: Analyze (${{ inputs.languages }})
+        runs-on: ubuntu-latest
+        timeout-minutes: 360
+        permissions:
+            actions: read
+            contents: read
+            security-events: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v6
+              with:
+                  cache: true
+
+            - name: Setup Node.js
+              if: ${{ contains(inputs.languages, 'javascript') || contains(inputs.languages, 'typescript') }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ inputs.node-version }}
+                  cache: ${{ inputs.package-manager }}
+
+            - name: Install dependencies
+              if: ${{ contains(inputs.languages, 'javascript') || contains(inputs.languages, 'typescript') }}
+              run: pnpm install --frozen-lockfile
+
+            - name: Initialize CodeQL
+              uses: github/codeql-action/init@v4
+              with:
+                  languages: ${{ inputs.languages }}
+                  queries: security-extended,security-and-quality
+                  build-mode: ${{ inputs.build-mode }}
+                  config: ${{ inputs.config-path != '' && inputs.config-path || '' }}
+
+            - name: Autobuild
+              uses: github/codeql-action/autobuild@v4
+              if: ${{ inputs.build-mode == 'autobuild' }}
+
+            - name: Manual build
+              if: ${{ inputs.build-mode == 'manual' }}
+              run: |
+                  if [ -f pnpm-lock.yaml ]; then
+                      pnpm build
+                  elif [ -f package-lock.json ]; then
+                      npm run build
+                  elif [ -f yarn.lock ]; then
+                      yarn build
+                  else
+                      echo "⚠️ No build script found"
+                  fi
+
+            - name: Perform CodeQL Analysis
+              uses: github/codeql-action/analyze@v4
+              with:
+                  category: "/language:${{ inputs.languages }}"
+                  upload: true
+
+            - name: Check for critical vulnerabilities
+              if: ${{ inputs.fail-on-critical == 'true' }}
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const { data: alerts } = await github.rest.codeScanning.listAlertsForRepo({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          severity: 'critical'
+                      });
+
+                      if (alerts.length > 0) {
+                          console.log(`⚠️ Found ${alerts.length} critical vulnerabilities!`);
+                          process.exit(1);
+                      } else {
+                          console.log('✅ No critical vulnerabilities found');
+                      }

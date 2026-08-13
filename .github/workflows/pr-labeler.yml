@@ -1,0 +1,88 @@
+name: "Pull Request Labeler"
+
+on:
+    workflow_call:
+        inputs:
+            config-path:
+                description: "Path to labeler config"
+                required: false
+                default: ".github/labeler.yml"
+                type: string
+            sync-labels:
+                description: "Sync labels (remove old ones)"
+                required: false
+                default: true
+                type: boolean
+            enable-comment:
+                description: "Add comment with applied labels"
+                required: false
+                default: false
+                type: boolean
+        secrets:
+            github-token:
+                description: "GitHub token"
+                required: false
+
+jobs:
+    label:
+        permissions:
+            contents: read
+            pull-requests: write
+        runs-on: ubuntu-latest
+        steps:
+            - name: Ensure Labels Exist
+              env:
+                  GH_TOKEN: ${{ secrets.github-token || secrets.GITHUB_TOKEN }}
+              run: |
+                  labels=(
+                    "feature:00c5ff:New feature"
+                    "fix:ff0000:Bug fix"
+                    "docs:0075ca:Documentation"
+                    "refactor:fbca04:Code refactoring"
+                    "test:ff69b4:Testing"
+                    "deps:0366d6:Dependencies"
+
+                    "views:a2eeef:Pages, widgets and layouts"
+                    "features:00c5ff:User scenarios and sliced features"
+                    "domain:fbca04:Business entities and models"
+                    "ui-kit:ffcc00:UI components, styles and storybook"
+                    "core-logic:e99695:Core logic, api, libs, configs and providers"
+
+                    "core:6c5ce7:Core application logic"
+                    "database:5319e7:Database and migrations"
+                    "libs:fd79a8:Libraries and utilities"
+                    "dx:00b894:Developer Experience"
+
+                    "devops:006b75:CI/CD and infrastructure"
+                    "config:eeeeee:Configuration files"
+
+                    "security:ff0000:Security and authentication"
+                    "api:e99695:API endpoints and controllers"
+                    "performance:ff8c00:Performance optimization"
+                  )
+
+                  for label in "${labels[@]}"; do
+                    IFS=":" read -r name color desc <<< "$label"
+                    gh label create "$name" --color "$color" --description "$desc" --repo ${{ github.repository }} || true
+                  done
+
+            - name: Run Labeler
+              uses: actions/labeler@v5
+              with:
+                  configuration-path: ${{ inputs.config-path }}
+                  sync-labels: ${{ inputs.sync-labels }}
+
+            - name: Comment with labels
+              if: ${{ inputs.enable-comment == 'true' }}
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const labels = context.payload.pull_request.labels.map(l => l.name);
+                      if (labels.length > 0) {
+                          await github.rest.issues.createComment({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              issue_number: context.payload.pull_request.number,
+                              body: '🏷️ **Applied labels:** ' + labels.map(l => `\`${l}\``).join(', ')
+                          });
+                      }

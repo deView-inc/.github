@@ -1,0 +1,60 @@
+name: ❓ Вопрос
+description: Задать вопрос по проекту
+title: "[Question]: "
+labels: ["question", "triage"]
+
+body:
+    - type: markdown
+      attributes:
+          value: |
+              ## ❓ Вопрос
+
+              Прежде чем задать вопрос, проверьте:
+              - 📚 [Документацию](https://docs.your-org.com)
+              - 🔍 [Обсуждения](https://github.com/your-org/discussions)
+              - 📖 [FAQ](https://docs.your-org.com/faq)
+
+    - type: textarea
+      id: question
+      attributes:
+          label: ❓ Ваш вопрос
+          description: Четко сформулируйте вопрос
+          placeholder: |
+              Как мне сделать...
+              Почему происходит...
+              Где найти...
+      validations:
+          required: true
+
+    - type: textarea
+      id: context
+      attributes:
+          label: 📋 Контекст
+          description: Расскажите, что вы уже попробовали
+          placeholder: |
+              Я пытался сделать X, но...
+              Изучил документацию, но не нашел...
+
+    - type: textarea
+      id: code
+      attributes:
+          label: 💻 Код
+          description: Приложите пример кода, если это уместно
+          render: javascript
+
+    - type: dropdown
+      id: urgency
+      attributes:
+          label: ⏱️ Срочность
+          options:
+              - 🔥 Очень срочно (блокирует работу)
+              - 📈 Нужно в ближайшее время
+              - 🤔 Могу подождать
+      validations:
+          required: true
+
+    - type: markdown
+      attributes:
+          value: |
+              ---
+              💡 Вопросы лучше задавать в [Discussions](https://github.com/your-org/discussions) — там быстрее отвечают!
